@@ -1,27 +1,3 @@
-<script>
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.get("login") === "success") {
-    localStorage.setItem("email", params.get("email"));
-    localStorage.setItem("role", params.get("role"));
-    localStorage.setItem("login_time", Date.now().toString());
-
-    // Clean URL
-    window.history.replaceState({}, document.title, "dashboard.html");
-  }
-</script>
-<script>
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("login") === "success") {
-    localStorage.setItem("role", params.get("role"));
-    localStorage.setItem("email", params.get("email"));
-    window.history.replaceState({}, document.title, "dashboard.html");
-  }
-
-  if (!localStorage.getItem("role")) {
-    window.location.href = "login.html";
-  }
-</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,224 +5,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Member Dashboard</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- AUTH + SESSION CHECK -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("login") === "success") {
+      localStorage.setItem("email", params.get("email"));
+      localStorage.setItem("role", params.get("role"));
+      localStorage.setItem("login_time", Date.now().toString());
+      window.history.replaceState({}, document.title, "dashboard.html");
+    }
+
+    const SESSION_DURATION = 60 * 60 * 1000;
+    const loginTime = localStorage.getItem("login_time");
+    const role = localStorage.getItem("role");
+
+    if (!loginTime || !role) {
+      window.location.href = "login.html";
+    } else if (Date.now() - parseInt(loginTime) > SESSION_DURATION) {
+      localStorage.clear();
+      alert("Session expired. Please login again.");
+      window.location.href = "login.html";
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+
   <style>
-    /* Dashboard-specific styles */
-    .dash-container {
-      padding: 20px;
-      max-width: 1100px;
-      margin: auto;
-    }
-
-    .welcome {
-      margin-bottom: 20px;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 25px;
-      overflow-x: auto;
-    }
-
-    .tab {
-      padding: 10px 14px;
-      border-radius: 8px;
-      background: #111827;
-      border: 1px solid #1f2933;
-      white-space: nowrap;
-      font-size: 14px;
-    }
-
-    .tab.active {
-      background: #00d084;
-      color: #000;
-      font-weight: 600;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 15px;
-    }
-
-    .dash-card {
-      background: #111827;
-      padding: 18px;
-      border-radius: 10px;
-      border: 1px solid #1f2933;
-    }
-
-    .dash-card h4 {
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
-
-    .dash-card p {
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    .dash-card span {
-      display: inline-block;
-      margin-top: 12px;
-      color: #00d084;
-      font-size: 13px;
-    }
-
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #0b0f14;
-      border-top: 1px solid #1f2933;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      font-size: 12px;
-    }
+    .dash-container { max-width:1100px; margin:auto; padding:20px; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:15px; }
+    .dash-card { background:#111827; padding:18px; border-radius:10px; border:1px solid #1f2933; }
+    .dash-card h4 { margin-bottom:8px; }
+    .dash-card span { color:#00d084; font-size:13px; display:inline-block; margin-top:10px; }
   </style>
 </head>
 
 <body>
 
-  <!-- TOP BAR -->
-  <nav class="navbar">
-    <div class="logo">TARA • Dashboard</div>
-    <div style="color:#9ca3af;font-size:13px;">Logged in</div>
-<button
-  onclick="logout()"
-  style="
-    background:#ff4d4f;
-    color:#fff;
-    border:none;
-    padding:8px 14px;
-    border-radius:6px;
-    cursor:pointer;
-    font-size:14px;
-    margin-left:12px;
-  "
->
-  Logout
-</button>
-
-  </nav>
-<button onclick="logout()" class="logout-btn">Logout</button>
-
-  <!-- DASHBOARD -->
-  <div class="dash-container">
-
-    <div class="welcome">
-      <h2>Good Evening, Trader 👋</h2>
-      <p style="color:#9ca3af;font-size:14px;">
-        Here’s your structured market view.
-      </p>
-    </div>
-
-    <!-- TABS -->
-    <div class="tabs">
-      <div class="tab active">Daily</div>
-	<div class="dash-card">
-
-      <div class="tab">Weekly</div>
-	<div class="dash-card weekly-card">
-
-      <div class="tab">Monthly</div>
-	<div class="dash-card monthly-card">
-
-      <div class="tab">Tools</div>
-    </div>
-<div class="dash-card admin-card">
-<div class="dash-card admin-card">
-  <h4>🔐 Admin Notes</h4>
-  <p>Internal research & controls.</p>
-  <span>Admin Only →</span>
+<!-- FLOATING LOGOUT (GUARANTEED VISIBLE) -->
+<div style="position:fixed;top:12px;right:16px;z-index:9999;">
+  <button onclick="logout()"
+    style="background:#ff4d4f;color:#fff;border:none;padding:8px 14px;
+    border-radius:6px;cursor:pointer;font-size:14px;">
+    Logout
+  </button>
 </div>
 
-    <!-- CARDS -->
-    <div class="cards">
+<div class="dash-container">
+  <h2>Good Evening, Trader 👋</h2>
+  <p style="color:#9ca3af;">Here’s your structured market view.</p>
 
-      <div class="dash-card">
-        <h4>📊 Today’s Market Bias</h4>
-        <p>Bullish • Controlled risk environment.</p>
-        <span>View Details →</span>
-      </div>
+  <div class="cards">
 
-      <div class="dash-card">
-        <h4>🎯 Key Levels</h4>
-        <p>Important support & resistance zones.</p>
-        <span>View Levels →</span>
-      </div>
-
-      <div class="dash-card">
-        <h4>🧠 Weekly Context</h4>
-        <p>Trend & swing structure overview.</p>
-        <span>Members →</span>
-      </div>
-
-      <div class="dash-card">
-        <h4>🛠 Research Tools</h4>
-        <p>OI Analyzer, scanners & dashboards.</p>
-        <span>Open Tools →</span>
-      </div>
-
+    <div class="dash-card">
+      <h4>📊 Today’s Market Bias</h4>
+      <p>Bullish • Controlled risk</p>
+      <span>View →</span>
     </div>
+
+    <div class="dash-card weekly-card">
+      <h4>🧠 Weekly Context</h4>
+      <p>Trend & swing structure</p>
+      <span>Members →</span>
+    </div>
+
+    <div class="dash-card monthly-card">
+      <h4>📆 Monthly Perspective</h4>
+      <p>Big picture planning</p>
+      <span>Premium →</span>
+    </div>
+
+    <div class="dash-card admin-card">
+      <h4>🔐 Admin Notes</h4>
+      <p>Internal research</p>
+      <span>Admin Only →</span>
+    </div>
+
   </div>
+</div>
 
-  <!-- MOBILE BOTTOM NAV -->
-  <div class="bottom-nav">
-    <div>Home</div>
-    <div>Daily</div>
-    <div>Tools</div>
-    <div>Profile</div>
-  </div>
+<!-- ROLE-BASED VISIBILITY -->
 <script>
-  const role = localStorage.getItem("role");
+  const r = localStorage.getItem("role");
 
-  // Card references
-  const weeklyCard = document.querySelector(".weekly-card");
-  const monthlyCard = document.querySelector(".monthly-card");
-  const adminCard = document.querySelector(".admin-card");
+  document.querySelector(".weekly-card").style.display = "none";
+  document.querySelector(".monthly-card").style.display = "none";
+  document.querySelector(".admin-card").style.display = "none";
 
-  // Default: hide all restricted cards
-  if (weeklyCard) weeklyCard.style.display = "none";
-  if (monthlyCard) monthlyCard.style.display = "none";
-  if (adminCard) adminCard.style.display = "none";
-
-  // Role logic
-  if (role === "premium") {
-    if (weeklyCard) weeklyCard.style.display = "block";
-    if (monthlyCard) monthlyCard.style.display = "block";
+  if (r === "premium") {
+    document.querySelector(".weekly-card").style.display = "block";
+    document.querySelector(".monthly-card").style.display = "block";
   }
 
-  if (role === "admin") {
-    if (weeklyCard) weeklyCard.style.display = "block";
-    if (monthlyCard) monthlyCard.style.display = "block";
-    if (adminCard) adminCard.style.display = "block";
-  }
-
-  if (!role) {
-    // Not logged in
-    window.location.href = "login.html";
-  }
-</script>
-<script>
-  const wm = localStorage.getItem("watermark");
-  if (wm) {
-    const mark = document.createElement("div");
-    mark.innerText = wm;
-    mark.style.position = "fixed";
-    mark.style.bottom = "10px";
-    mark.style.right = "10px";
-    mark.style.opacity = "0.2";
-    mark.style.fontSize = "12px";
-    document.body.appendChild(mark);
-  }
-</script>
-<script>
-  function logout() {
-    localStorage.clear();
-    window.location.href = "login.html";
+  if (r === "admin") {
+    document.querySelector(".weekly-card").style.display = "block";
+    document.querySelector(".monthly-card").style.display = "block";
+    document.querySelector(".admin-card").style.display = "block";
   }
 </script>
 
