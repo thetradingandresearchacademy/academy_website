@@ -1,3 +1,15 @@
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("login") === "success") {
+    localStorage.setItem("role", params.get("role"));
+    localStorage.setItem("email", params.get("email"));
+    window.history.replaceState({}, document.title, "dashboard.html");
+  }
+
+  if (!localStorage.getItem("role")) {
+    window.location.href = "login.html";
+  }
+</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>

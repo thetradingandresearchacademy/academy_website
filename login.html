@@ -92,11 +92,13 @@
     <p>Enter your registered email to continue</p>
 
     <input
-      type="email"
-      id="email"
-      placeholder="you@example.com"
-      autocomplete="off"
-    />
+  type="email"
+  id="email"
+  placeholder="you@example.com"
+  autocomplete="off"
+  onkeydown="if(event.key==='Enter'){login();}"
+/>
+
 
     <button onclick="login()">Continue</button>
 
@@ -110,33 +112,17 @@
 <script>
   function login() {
     const email = document.getElementById("email").value.trim();
-    const msg = document.getElementById("msg");
+    if (!email) return;
 
-    if (!email) {
-      msg.textContent = "Please enter your email.";
-      return;
-    }
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbyGhTkXRI8koxE5tzbiDNBrpfPICpthcneTxoAE7B_4XaJRxne3IFhRX0SOhMtcYbBt/exec";
 
-    msg.textContent = "Checking access...";
+    const redirect = encodeURIComponent(
+      window.location.origin + "/dashboard.html"
+    );
 
-    // 🔁 PASTE YOUR APPS SCRIPT WEB APP URL BELOW
-    const API_URL = "https://script.google.com/macros/s/AKfycbyGhTkXRI8koxE5tzbiDNBrpfPICpthcneTxoAE7B_4XaJRxne3IFhRX0SOhMtcYbBt/exec";
-
-    fetch(API_URL + (API_URL.includes("?") ? "&" : "?") + "email=" + encodeURIComponent(email))
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "success") {
-          localStorage.setItem("role", data.role);
-          localStorage.setItem("name", data.name || "");
-          localStorage.setItem("watermark", data.watermark || "");
-          window.location.href = "dashboard.html";
-        } else {
-          msg.textContent = "Access denied. Please contact admin.";
-        }
-      })
-      .catch(() => {
-        msg.textContent = "Login service unavailable. Try again later.";
-      });
+    window.location.href =
+      API_URL + "?email=" + encodeURIComponent(email) + "&redirect=" + redirect;
   }
 </script>
 
