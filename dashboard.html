@@ -105,10 +105,22 @@
     <!-- TABS -->
     <div class="tabs">
       <div class="tab active">Daily</div>
+	<div class="dash-card">
+
       <div class="tab">Weekly</div>
+	<div class="dash-card weekly-card">
+
       <div class="tab">Monthly</div>
+	<div class="dash-card monthly-card">
+
       <div class="tab">Tools</div>
     </div>
+<div class="dash-card admin-card">
+<div class="dash-card admin-card">
+  <h4>🔐 Admin Notes</h4>
+  <p>Internal research & controls.</p>
+  <span>Admin Only →</span>
+</div>
 
     <!-- CARDS -->
     <div class="cards">
@@ -147,6 +159,49 @@
     <div>Tools</div>
     <div>Profile</div>
   </div>
+<script>
+  const role = localStorage.getItem("role");
+
+  // Card references
+  const weeklyCard = document.querySelector(".weekly-card");
+  const monthlyCard = document.querySelector(".monthly-card");
+  const adminCard = document.querySelector(".admin-card");
+
+  // Default: hide all restricted cards
+  if (weeklyCard) weeklyCard.style.display = "none";
+  if (monthlyCard) monthlyCard.style.display = "none";
+  if (adminCard) adminCard.style.display = "none";
+
+  // Role logic
+  if (role === "premium") {
+    if (weeklyCard) weeklyCard.style.display = "block";
+    if (monthlyCard) monthlyCard.style.display = "block";
+  }
+
+  if (role === "admin") {
+    if (weeklyCard) weeklyCard.style.display = "block";
+    if (monthlyCard) monthlyCard.style.display = "block";
+    if (adminCard) adminCard.style.display = "block";
+  }
+
+  if (!role) {
+    // Not logged in
+    window.location.href = "login.html";
+  }
+</script>
+<script>
+  const wm = localStorage.getItem("watermark");
+  if (wm) {
+    const mark = document.createElement("div");
+    mark.innerText = wm;
+    mark.style.position = "fixed";
+    mark.style.bottom = "10px";
+    mark.style.right = "10px";
+    mark.style.opacity = "0.2";
+    mark.style.fontSize = "12px";
+    document.body.appendChild(mark);
+  }
+</script>
 
 </body>
 </html>
