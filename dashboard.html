@@ -3,109 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Member Dashboard</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="style.css">
 
-  <!-- AUTH + SESSION CHECK -->
-  <script>
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("login") === "success") {
-      localStorage.setItem("email", params.get("email"));
-      localStorage.setItem("role", params.get("role"));
-      localStorage.setItem("login_time", Date.now().toString());
-      window.history.replaceState({}, document.title, "dashboard.html");
-    }
-
-    const SESSION_DURATION = 60 * 60 * 1000;
-    const loginTime = localStorage.getItem("login_time");
-    const role = localStorage.getItem("role");
-
-    if (!loginTime || !role) {
-      window.location.href = "login.html";
-    } else if (Date.now() - parseInt(loginTime) > SESSION_DURATION) {
-      localStorage.clear();
-      alert("Session expired. Please login again.");
-      window.location.href = "login.html";
-    }
-
-    function logout() {
-      localStorage.clear();
-      window.location.href = "login.html";
-    }
-  </script>
-
   <style>
-    .dash-container { max-width:1100px; margin:auto; padding:20px; }
-    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:15px; }
-    .dash-card { background:#111827; padding:18px; border-radius:10px; border:1px solid #1f2933; }
-    .dash-card h4 { margin-bottom:8px; }
-    .dash-card span { color:#00d084; font-size:13px; display:inline-block; margin-top:10px; }
+    body { background:#0b0f14; color:#fff; font-family:Arial,sans-serif; }
+    .container { max-width:1000px; margin:80px auto; padding:20px; }
+    .card { background:#111827; padding:16px; border-radius:10px; margin-bottom:12px; }
   </style>
 </head>
 
 <body>
 
-<!-- FLOATING LOGOUT (GUARANTEED VISIBLE) -->
-<div style="position:fixed;top:12px;right:16px;z-index:9999;">
-  <button onclick="logout()"
-    style="background:#ff4d4f;color:#fff;border:none;padding:8px 14px;
-    border-radius:6px;cursor:pointer;font-size:14px;">
-    Logout
-  </button>
+<!-- ✅ LOGOUT BUTTON (DOM FIRST, GUARANTEED VISIBLE) -->
+<button id="logoutBtn"
+  style="
+    position:fixed;
+    top:16px;
+    right:16px;
+    background:#ff4d4f;
+    color:#fff;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    z-index:9999;
+  ">
+  Logout
+</button>
+
+<div class="container">
+  <h1>Dashboard Loaded ✅</h1>
+
+  <div class="card weekly-card">Weekly Card</div>
+  <div class="card monthly-card">Monthly Card</div>
+  <div class="card admin-card">Admin Card</div>
 </div>
 
-<div class="dash-container">
-  <h2>Good Evening, Trader 👋</h2>
-  <p style="color:#9ca3af;">Here’s your structured market view.</p>
-
-  <div class="cards">
-
-    <div class="dash-card">
-      <h4>📊 Today’s Market Bias</h4>
-      <p>Bullish • Controlled risk</p>
-      <span>View →</span>
-    </div>
-
-    <div class="dash-card weekly-card">
-      <h4>🧠 Weekly Context</h4>
-      <p>Trend & swing structure</p>
-      <span>Members →</span>
-    </div>
-
-    <div class="dash-card monthly-card">
-      <h4>📆 Monthly Perspective</h4>
-      <p>Big picture planning</p>
-      <span>Premium →</span>
-    </div>
-
-    <div class="dash-card admin-card">
-      <h4>🔐 Admin Notes</h4>
-      <p>Internal research</p>
-      <span>Admin Only →</span>
-    </div>
-
-  </div>
-</div>
-
-<!-- ROLE-BASED VISIBILITY -->
+<!-- ✅ ALL JS AT THE END -->
 <script>
-  const r = localStorage.getItem("role");
+  // ---------- AUTH CHECK ----------
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("login") === "success") {
+    localStorage.setItem("email", params.get("email"));
+    localStorage.setItem("role", params.get("role"));
+    localStorage.setItem("login_time", Date.now());
+    history.replaceState({}, "", "dashboard.html");
+  }
 
+  const role = localStorage.getItem("role");
+  if (!role) {
+    location.href = "login.html";
+  }
+
+  // ---------- SESSION EXPIRY ----------
+  const MAX_SESSION = 60 * 60 * 1000;
+  const loginTime = localStorage.getItem("login_time");
+  if (Date.now() - loginTime > MAX_SESSION) {
+    localStorage.clear();
+    alert("Session expired");
+    location.href = "login.html";
+  }
+
+  // ---------- ROLE VISIBILITY ----------
   document.querySelector(".weekly-card").style.display = "none";
   document.querySelector(".monthly-card").style.display = "none";
   document.querySelector(".admin-card").style.display = "none";
 
-  if (r === "premium") {
+  if (role === "premium") {
     document.querySelector(".weekly-card").style.display = "block";
     document.querySelector(".monthly-card").style.display = "block";
   }
 
-  if (r === "admin") {
+  if (role === "admin") {
     document.querySelector(".weekly-card").style.display = "block";
     document.querySelector(".monthly-card").style.display = "block";
     document.querySelector(".admin-card").style.display = "block";
   }
+
+  // ---------- LOGOUT ----------
+  document.getElementById("logoutBtn").onclick = function () {
+    localStorage.clear();
+    location.href = "login.html";
+  };
 </script>
 
 </body>
