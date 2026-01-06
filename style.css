@@ -1,0 +1,144 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+body {
+  background: #0e1117;
+  color: #e5e7eb;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 40px;
+  border-bottom: 1px solid #1f2933;
+}
+
+.logo {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+}
+
+.login-btn {
+  color: #00d084;
+}
+
+/* HERO */
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  padding: 80px 40px;
+  gap: 40px;
+}
+
+.hero h1 {
+  font-size: 42px;
+  line-height: 1.2;
+}
+
+.hero p {
+  margin-top: 20px;
+  max-width: 520px;
+  color: #9ca3af;
+}
+
+.hero-actions {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.primary {
+  background: #00d084;
+  border: none;
+  padding: 12px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary {
+  background: transparent;
+  border: 1px solid #374151;
+  padding: 12px 18px;
+  color: #e5e7eb;
+  cursor: pointer;
+}
+
+/* MOCK CARD */
+.hero-visual {
+  display: flex;
+  align-items: center;
+}
+
+.mock-card {
+  background: #111827;
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid #1f2933;
+}
+
+.bullish {
+  color: #00d084;
+  font-weight: 600;
+}
+
+/* TRUST */
+.trust {
+  display: flex;
+  justify-content: space-around;
+  padding: 25px;
+  background: #0b0f14;
+  border-top: 1px solid #1f2933;
+  border-bottom: 1px solid #1f2933;
+}
+
+/* MODULES */
+.modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  padding: 60px 40px;
+}
+
+.card {
+  background: #111827;
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid #1f2933;
+}
+
+.card span {
+  display: inline-block;
+  margin-top: 15px;
+  color: #00d084;
+}
+
+/* PHILOSOPHY */
+.philosophy {
+  text-align: center;
+  padding: 60px 30px;
+}
+
+.philosophy p {
+  max-width: 600px;
+  margin: 15px auto;
+  color: #9ca3af;
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 25px;
+  font-size: 13px;
+  color: #6b7280;
+}
