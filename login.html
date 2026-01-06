@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Member Login | TARA</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      color: #e5e7eb;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-box {
+      background: #020617;
+      border: 1px solid #1f2937;
+      border-radius: 14px;
+      padding: 30px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .login-box h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .login-box p {
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: #9ca3af;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #00d084;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: #00d084;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .msg {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #f87171;
+      min-height: 18px;
+    }
+
+    .footer {
+      margin-top: 22px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-box">
+    <h2>Member Login</h2>
+    <p>Enter your registered email to continue</p>
+
+    <input
+      type="email"
+      id="email"
+      placeholder="you@example.com"
+      autocomplete="off"
+    />
+
+    <button onclick="login()">Continue</button>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="footer">
+      Trading & Research Academy
+    </div>
+  </div>
+
+<script>
+  function login() {
+    const email = document.getElementById("email").value.trim();
+    const msg = document.getElementById("msg");
+
+    if (!email) {
+      msg.textContent = "Please enter your email.";
+      return;
+    }
+
+    msg.textContent = "Checking access...";
+
+    // 🔁 PASTE YOUR APPS SCRIPT WEB APP URL BELOW
+    const API_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+    fetch(API_URL + (API_URL.includes("?") ? "&" : "?") + "email=" + encodeURIComponent(email))
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          localStorage.setItem("role", data.role);
+          localStorage.setItem("name", data.name || "");
+          localStorage.setItem("watermark", data.watermark || "");
+          window.location.href = "dashboard.html";
+        } else {
+          msg.textContent = "Access denied. Please contact admin.";
+        }
+      })
+      .catch(() => {
+        msg.textContent = "Login service unavailable. Try again later.";
+      });
+  }
+</script>
+
+</body>
+</html>
