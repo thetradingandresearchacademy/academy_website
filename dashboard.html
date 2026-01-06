@@ -1,5 +1,17 @@
 <script>
   const params = new URLSearchParams(window.location.search);
+
+  if (params.get("login") === "success") {
+    localStorage.setItem("email", params.get("email"));
+    localStorage.setItem("role", params.get("role"));
+    localStorage.setItem("login_time", Date.now().toString());
+
+    // Clean URL
+    window.history.replaceState({}, document.title, "dashboard.html");
+  }
+</script>
+<script>
+  const params = new URLSearchParams(window.location.search);
   if (params.get("login") === "success") {
     localStorage.setItem("role", params.get("role"));
     localStorage.setItem("email", params.get("email"));
@@ -102,7 +114,24 @@
   <nav class="navbar">
     <div class="logo">TARA • Dashboard</div>
     <div style="color:#9ca3af;font-size:13px;">Logged in</div>
+<button
+  onclick="logout()"
+  style="
+    background:#ff4d4f;
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+    margin-left:12px;
+  "
+>
+  Logout
+</button>
+
   </nav>
+<button onclick="logout()" class="logout-btn">Logout</button>
 
   <!-- DASHBOARD -->
   <div class="dash-container">
@@ -212,6 +241,12 @@
     mark.style.opacity = "0.2";
     mark.style.fontSize = "12px";
     document.body.appendChild(mark);
+  }
+</script>
+<script>
+  function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
   }
 </script>
 

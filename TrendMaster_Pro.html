@@ -1,3 +1,20 @@
+<script>
+  const SESSION_DURATION = 60 * 60 * 1000; // 60 minutes
+
+  const loginTime = localStorage.getItem("login_time");
+  const role = localStorage.getItem("role");
+
+  if (!loginTime || !role) {
+    window.location.href = "login.html";
+  } else {
+    const now = Date.now();
+    if (now - parseInt(loginTime) > SESSION_DURATION) {
+      localStorage.clear();
+      alert("Session expired. Please login again.");
+      window.location.href = "login.html";
+    }
+  }
+</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -274,5 +291,12 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+<script>
+  function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+</script>
+
 </body>
 </html>
