@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwingLab Framework | TARA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #020617; 
+            color: #f1f5f9;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .glass { 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .pulse-red { animation: pulseR 2s infinite; }
+        @keyframes pulseR {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .pulse-green { animation: pulseG 2s infinite; }
+        @keyframes pulseG {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        const App = () => {
+            const [data, setData] = useState([]);
+            const [filter, setFilter] = useState('ALL');
+            const [indexMode, setIndexMode] = useState(false);
+            const [isLoaded, setIsLoaded] = useState(false);
+
+            const cleanKey = (key) => key.toLowerCase().replace(/<br\s*\/?>/g, '').replace(/[^a-z]/g, '').trim();
+
+            const parseCSV = (text) => {
+                const lines = text.split(/\r?\n/).filter(l => l.trim());
+                if (lines.length < 2) return [];
+                const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                
+                return lines.slice(1).map(line => {
+                    const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    if (!values) return null;
+                    const entry = {};
+                    rawHeaders.forEach((h, i) => {
+                        entry[cleanKey(h)] = values[i]?.trim().replace(/"/g, '');
+                    });
+                    return entry;
+                }).filter(Boolean);
+            };
+
+            const handleUpload = (e) => {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const raw = parseCSV(ev.target.result);
+                        const name = file.name.toLowerCase();
+                        let type = "Neutral";
+                        if (name.includes("rise-in-oi-and-rise-in-price")) type = "Long Build Up";
+                        if (name.includes("rise-in-oi-and-slide-in-price")) type = "Short Build Up";
+                        if (name.includes("slide-in-oi-and-rise-in-price")) type = "Short Covering";
+                        if (name.includes("slide-in-oi-and-slide-in-price")) type = "Long Unwinding";
+
+                        const formatted = raw.map(row => ({
+                            symbol: row['symbol'],
+                            type,
+                            optType: row['optiontype'] || 'FUT',
+                            oi: parseFloat(row['openinterest'] || 0),
+                            oiChg: parseFloat(row['chnginoi'] || 0),
+                            ltp: parseFloat(row['ltp'] || 0),
+                            pPct: parseFloat(row['chnginltp'] || row['chngltp'] || 0),
+                            underlying: parseFloat(row['underlyingvalue'] || 0)
+                        }));
+                        setData(prev => [...prev, ...formatted]);
+                        setIsLoaded(true);
+                    };
+                    reader.readAsText(file);
+                });
+            };
+
+            const getRating = (score) => {
+                const abs = Math.abs(score);
+                if (abs > 50) return { label: '🔥 EXTREME', color: 'text-red-400', bg: 'bg-red-500/10' };
+                if (abs > 30) return { label: '⚡ STRONG', color: 'text-orange-400', bg: 'bg-orange-500/10' };
+                if (abs > 15) return { label: '📈 MODERATE', color: 'text-blue-400', bg: 'bg-blue-500/10' };
+                return { label: '⏳ WEAK', color: 'text-slate-500', bg: 'bg-slate-500/5' };
+            };
+
+            const processed = useMemo(() => {
+                const grouped = data.reduce((acc, curr) => {
+                    if (!acc[curr.symbol]) {
+                        acc[curr.symbol] = { ...curr, count: 1, cOI: 0, pOI: 0, totalOIChg: 0, totalPPct: 0 };
+                    }
+                    acc[curr.symbol].count++;
+                    acc[curr.symbol].totalOIChg += curr.oiChg;
+                    acc[curr.symbol].totalPPct += curr.pPct;
+                    if (curr.optType === 'Call') acc[curr.symbol].cOI += curr.oi;
+                    if (curr.optType === 'Put') acc[curr.symbol].pOI += curr.oi;
+                    return acc;
+                }, {});
+
+                return Object.values(grouped).map(item => {
+                    const avgOI = item.totalOIChg / item.count;
+                    const avgP = item.totalPPct / item.count;
+                    const isBullish = item.type.includes("Long Build") || item.type.includes("Covering");
+                    const isIndex = ['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'].includes(item.symbol.toUpperCase());
+                    
+                    if (indexMode && !isIndex) return null;
+
+                    let score = (Math.abs(avgOI) * 0.8) + (Math.abs(avgP) * 1.5);
+                    const finalScore = isBullish ? score : -score;
+                    const oiDiff = Math.abs(item.cOI - item.pOI);
+
+                    return { 
+                        ...item, 
+                        finalScore, 
+                        oiDiff, 
+                        isIndex, 
+                        rating: getRating(finalScore),
+                        isHighDiff: oiDiff > 10000000,
+                        isMegaDiff: oiDiff > 50000000
+                    };
+                })
+                .filter(i => i !== null)
+                .filter(i => filter === 'ALL' || (filter === 'BULLISH' && i.finalScore > 0) || (filter === 'BEARISH' && i.finalScore < 0))
+                .sort((a, b) => Math.abs(b.finalScore) - Math.abs(a.finalScore));
+            }, [data, filter, indexMode]);
+
+            return (
+                <div className="min-h-screen flex flex-col p-4 lg:p-8 max-w-[1600px] mx-auto">
+                    {/* SwingLab Header Branding */}
+                    <div className="flex flex-col lg:flex-row justify-between items-end border-b border-white/10 pb-8 mb-8 gap-6">
+                        <div className="space-y-1">
+                            <h2 className="text-blue-500 font-bold tracking-[0.4em] text-sm uppercase mb-2">SwingLab FRAMEWORK</h2>
+                            <h1 className="text-4xl lg:text-6xl font-black tracking-tighter leading-none">
+                                THE TRADING AND RESEARCH ACADEMY <span className="text-blue-600">(TARA)</span>
+                            </h1>
+                            <p className="text-slate-500 text-sm font-medium tracking-wide">Institutional OI Flow & Price Action Synchronizer</p>
+                        </div>
+                        <div className="flex gap-4">
+                            <button onClick={() => setIndexMode(!indexMode)} className={`px-6 py-4 rounded-xl font-bold transition-all border text-sm ${indexMode ? 'bg-blue-600 border-blue-400 shadow-lg shadow-blue-500/20' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                                {indexMode ? '⚡ INDEX MODE ACTIVE' : 'GLOBAL MODE'}
+                            </button>
+                            <label className="bg-white text-black font-bold px-6 py-4 rounded-xl cursor-pointer text-sm flex items-center gap-2 hover:bg-slate-200 transition-colors">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
+                                UPLOAD NSE FILES
+                                <input type="file" multiple className="hidden" onChange={handleUpload} />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Dashboard Logic & Legend */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+                        <div className="lg:col-span-7 flex gap-4 overflow-x-auto pb-2">
+                            {['ALL', 'BULLISH', 'BEARISH'].map(f => (
+                                <button key={f} onClick={() => setFilter(f)} className={`px-10 py-4 rounded-xl text-xs font-black tracking-widest transition-all shrink-0 ${filter === f ? 'bg-blue-600 text-white' : 'glass text-slate-500 hover:bg-slate-800'}`}>
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* Scoring Legend */}
+                        <div className="lg:col-span-5 glass rounded-2xl p-5 flex justify-between items-center px-8">
+                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Score Legend:</span>
+                            <div className="flex gap-5 text-xs font-bold">
+                                <span className="text-red-400">🔥 EXTREME > 50</span>
+                                <span className="text-orange-400">⚡ STRONG > 30</span>
+                                <span className="text-blue-400">📈 MODERATE > 15</span>
+                                <span className="text-slate-500 italic">⏳ WEAK &lt; 15</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Table Content */}
+                    <div className="glass rounded-[2rem] overflow-hidden flex-grow border border-white/5 shadow-2xl mb-8">
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse min-w-[1000px]">
+                                <thead>
+                                    <tr className="bg-slate-900/50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                        <th className="p-6">Asset Profile</th>
+                                        <th className="p-6">SwingLab Rating</th>
+                                        <th className="p-6">Signal Type</th>
+                                        <th className="p-6 text-right">Trend Score</th>
+                                        <th className="p-6 text-right">OI Gap (Cr)</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {!isLoaded ? (
+                                        <tr>
+                                            <td colSpan="5" className="p-40 text-center">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    <p className="text-slate-500 font-bold text-sm uppercase tracking-widest">Awaiting Data Synchronization</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : processed.map((row, idx) => (
+                                        <tr key={idx} className={`hover:bg-blue-500/5 transition-all ${Math.abs(row.finalScore) > 40 ? 'bg-blue-500/[0.03]' : ''}`}>
+                                            <td className="p-6">
+                                                <div className={`text-xl font-black tracking-tighter inline-block px-3 py-1 rounded-lg ${row.isMegaDiff ? (row.finalScore > 0 ? 'pulse-green bg-emerald-500 text-white' : 'pulse-red bg-red-500 text-white') : 'text-white'}`}>
+                                                    {row.symbol}
+                                                </div>
+                                                <div className="text-[10px] font-bold text-slate-600 mt-1 uppercase">{row.isIndex ? 'Index' : 'FnO Stock'}</div>
+                                            </td>
+                                            <td className="p-6">
+                                                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black border tracking-wider ${row.rating.color} ${row.rating.bg} border-current/20`}>
+                                                    {row.rating.label}
+                                                </span>
+                                            </td>
+                                            <td className="p-6">
+                                                <div className={`text-[10px] font-black uppercase ${row.finalScore > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                    {row.type}
+                                                </div>
+                                            </td>
+                                            <td className="p-6 text-right">
+                                                <div className={`text-3xl font-black mono ${row.finalScore > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                    {row.finalScore.toFixed(1)}
+                                                </div>
+                                            </td>
+                                            <td className="p-6 text-right">
+                                                <div className={`text-xl font-black mono ${row.isHighDiff ? 'text-blue-400' : 'text-slate-700'}`}>
+                                                    {(row.oiDiff/10000000).toFixed(2)}
+                                                </div>
+                                                <div className="w-20 h-1 bg-slate-800 rounded-full ml-auto mt-2 overflow-hidden">
+                                                    <div className={`h-full transition-all duration-1000 ${row.finalScore > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} 
+                                                         style={{width: `${Math.min((row.oiDiff/15000000)*100, 100)}%`}}></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Footer Disclosure */}
+                    <div className="mt-auto pt-8 border-t border-white/5 text-center bg-slate-900/20 p-6 rounded-b-[2rem]">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.3em] mb-3">
+                            SwingLab Framework Engine v4.5.10 | Powered by TARA
+                        </p>
+                        <p className="text-sm font-bold text-slate-300 max-w-4xl mx-auto leading-relaxed">
+                            "This is for Education Purpose & not a BUY or SELL Recommendation"
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

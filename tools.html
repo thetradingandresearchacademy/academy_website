@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Research Tools</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .tool-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .tool-card {
+      background: #111827;
+      border: 1px solid #1f2933;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .tool-card h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .tool-card p {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .tool-card button {
+      margin-top: 15px;
+      padding: 8px 12px;
+      background: #00d084;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .tool-frame {
+      margin-top: 30px;
+      border: 1px solid #1f2933;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 70vh;
+      display: none;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <nav class="navbar">
+    <div class="logo">TARA • Research Tools</div>
+    <div style="color:#9ca3af;font-size:13px;">Members Area</div>
+  </nav>
+
+  <div class="tool-container">
+
+    <h2>Market Research Tools</h2>
+    <p style="color:#9ca3af;font-size:14px;margin-bottom:20px;">
+      Practical tools used for daily & swing decision-making.
+    </p>
+
+    <!-- TOOL CARDS -->
+    <div class="tool-grid">
+
+      <div class="tool-card">
+        <h3>📊 Trending OI Analyzer</h3>
+        <p>Track Open Interest build-up and directional bias.</p>
+        <button onclick="openTool('oi')">Open Tool</button>
+      </div>
+
+      <div class="tool-card">
+        <h3>📈 Market Scanner</h3>
+        <p>Early movers, breakouts & momentum stocks.</p>
+        <button onclick="openTool('scanner')">Open Tool</button>
+      </div>
+
+      <div class="tool-card premium-tool">
+        <h3>🧠 SwingLab Research</h3>
+        <p>High-probability swing setups & context.</p>
+        <button onclick="openTool('swinglab')">Premium Tool</button>
+      </div>
+
+    </div>
+
+    <!-- TOOL DISPLAY -->
+    <div class="tool-frame" id="toolFrame">
+      <iframe id="toolIframe"></iframe>
+    </div>
+
+  </div>
+
+<script>
+  // Login check
+  const role = localStorage.getItem("role");
+  if (!role) {
+    window.location.href = "login.html";
+  }
+
+  // Role-based restriction (premium tools)
+  if (role === "free") {
+    document.querySelectorAll(".premium-tool").forEach(el => {
+      el.style.display = "none";
+    });
+  }
+
+  function openTool(type) {
+    const frame = document.getElementById("toolFrame");
+    const iframe = document.getElementById("toolIframe");
+
+    frame.style.display = "block";
+
+    if (type === "oi") {
+      iframe.src = "TrendMaster_pro.html";
+    }
+
+    if (type === "scanner") {
+      iframe.src = "PASTE_SCANNER_URL_HERE";
+    }
+
+    if (type === "swinglab") {
+      iframe.src = "PASTE_SWINGLAB_URL_HERE";
+    }
+  }
+</script>
+
+</body>
+</html>
