@@ -120,7 +120,7 @@
     msg.textContent = "Checking access...";
 
     // 🔁 PASTE YOUR APPS SCRIPT WEB APP URL BELOW
-    const API_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyGhTkXRI8koxE5tzbiDNBrpfPICpthcneTxoAE7B_4XaJRxne3IFhRX0SOhMtcYbBt/exec";
 
     fetch(API_URL + (API_URL.includes("?") ? "&" : "?") + "email=" + encodeURIComponent(email))
       .then(res => res.json())
