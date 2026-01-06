@@ -1,20 +1,31 @@
 <script>
-  const SESSION_DURATION = 60 * 60 * 1000; // 60 minutes
-
-  const loginTime = localStorage.getItem("login_time");
+(function () {
   const role = localStorage.getItem("role");
+  const loginTime = parseInt(localStorage.getItem("login_time"), 10);
+  const MAX_SESSION = 15 * 60 * 1000;
 
-  if (!loginTime || !role) {
-    window.location.href = "login.html";
-  } else {
-    const now = Date.now();
-    if (now - parseInt(loginTime) > SESSION_DURATION) {
-      localStorage.clear();
-      alert("Session expired. Please login again.");
-      window.location.href = "login.html";
-    }
+  if (!role || !loginTime) {
+    alert("Please login first.");
+    location.href = "login.html";
+    return;
   }
+
+  const elapsed = Date.now() - loginTime;
+  if (elapsed > MAX_SESSION) {
+    localStorage.clear();
+    alert("Session expired.");
+    location.href = "login.html";
+    return;
+  }
+
+  if (role !== "premium" && role !== "admin") {
+    alert("This tool is available for Premium members only.");
+    location.href = "dashboard.html";
+    return;
+  }
+})();
 </script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
