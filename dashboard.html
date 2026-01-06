@@ -3,89 +3,224 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard</title>
+  <title>TARA • Member Dashboard</title>
+
+  <!-- MAIN STYLE -->
   <link rel="stylesheet" href="style.css">
 
+  <!-- DASHBOARD-SPECIFIC STYLE -->
   <style>
-    body { background:#0b0f14; color:#fff; font-family:Arial,sans-serif; }
-    .container { max-width:1000px; margin:80px auto; padding:20px; }
-    .card { background:#111827; padding:16px; border-radius:10px; margin-bottom:12px; }
+    body {
+      background: #0b0f14;
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid #1f2933;
+      background: #0b0f14;
+    }
+
+    .logo {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .dash-container {
+      padding: 24px;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .dash-card {
+      background: #111827;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #1f2933;
+    }
+
+    .dash-card h4 {
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .dash-card p {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .dash-card span {
+      display: inline-block;
+      margin-top: 10px;
+      color: #00d084;
+      font-size: 13px;
+    }
+
+    .logout-btn {
+      position: fixed;
+      top: 14px;
+      right: 18px;
+      background: #ff4d4f;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 9999;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0b0f14;
+      border-top: 1px solid #1f2933;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      font-size: 12px;
+    }
   </style>
 </head>
 
 <body>
 
-<!-- ✅ LOGOUT BUTTON (DOM FIRST, GUARANTEED VISIBLE) -->
-<button id="logoutBtn"
-  style="
-    position:fixed;
-    top:16px;
-    right:16px;
-    background:#ff4d4f;
-    color:#fff;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;
-    z-index:9999;
-  ">
-  Logout
-</button>
+<!-- LOGOUT BUTTON (ALWAYS VISIBLE) -->
+<button class="logout-btn" onclick="logout()">Logout</button>
 
-<div class="container">
-  <h1>Dashboard Loaded ✅</h1>
+<!-- TOP NAV -->
+<nav class="navbar">
+  <div class="logo">TARA • Dashboard</div>
+  <div id="userRole" style="font-size:13px;color:#9ca3af;"></div>
+</nav>
 
-  <div class="card weekly-card">Weekly Card</div>
-  <div class="card monthly-card">Monthly Card</div>
-  <div class="card admin-card">Admin Card</div>
+<!-- DASHBOARD -->
+<div class="dash-container">
+  <h2>Welcome 👋</h2>
+  <p style="color:#9ca3af;font-size:14px;">
+    Your structured market workspace.
+  </p>
+
+  <div class="cards">
+    <div class="dash-card">
+      <h4>📊 Daily Market View</h4>
+      <p>Today’s bias & risk tone.</p>
+      <span>Free →</span>
+    </div>
+
+    <div class="dash-card weekly-card">
+      <h4>🧠 Weekly Outlook</h4>
+      <p>Trend & swing structure.</p>
+      <span>Members →</span>
+    </div>
+
+    <div class="dash-card monthly-card">
+      <h4>📅 Monthly Perspective</h4>
+      <p>Big picture planning.</p>
+      <span>Premium →</span>
+    </div>
+
+    <div class="dash-card admin-card">
+      <h4>🔐 Admin Notes</h4>
+      <p>Internal research controls.</p>
+      <span>Admin Only →</span>
+    </div>
+  </div>
 </div>
 
-<!-- ✅ ALL JS AT THE END -->
+<!-- MOBILE NAV -->
+<div class="bottom-nav">
+  <div>Home</div>
+  <div>Daily</div>
+  <div>Tools</div>
+  <div>Profile</div>
+</div>
+
+<!-- ================= SESSION + ROLE LOGIC ================= -->
 <script>
-  // ---------- AUTH CHECK ----------
+(function () {
   const params = new URLSearchParams(window.location.search);
+
+  // STEP 1: Capture login redirect ONCE
   if (params.get("login") === "success") {
     localStorage.setItem("email", params.get("email"));
     localStorage.setItem("role", params.get("role"));
-    localStorage.setItem("login_time", Date.now());
-    history.replaceState({}, "", "dashboard.html");
+    localStorage.setItem("login_time", Date.now().toString());
+
+    // Clean URL
+    window.history.replaceState({}, document.title, "dashboard.html");
   }
 
+  // STEP 2: Validate session
   const role = localStorage.getItem("role");
-  if (!role) {
-    location.href = "login.html";
-  }
-
-  // ---------- SESSION EXPIRY ----------
-  const MAX_SESSION = 60 * 60 * 1000;
   const loginTime = localStorage.getItem("login_time");
-  if (Date.now() - loginTime > MAX_SESSION) {
-    localStorage.clear();
-    alert("Session expired");
-    location.href = "login.html";
+
+  const MAX_SESSION = 15 * 60 * 1000; // 15 minutes
+
+  if (!role || !loginTime) {
+    alert("Please login again.");
+    window.location.href = "login.html";
+    return;
   }
 
-  // ---------- ROLE VISIBILITY ----------
-  document.querySelector(".weekly-card").style.display = "none";
-  document.querySelector(".monthly-card").style.display = "none";
-  document.querySelector(".admin-card").style.display = "none";
+  if (Date.now() - parseInt(loginTime, 10) > MAX_SESSION) {
+    localStorage.clear();
+    alert("Session expired.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  // STEP 3: Auto-expiry timer
+  setTimeout(() => {
+    localStorage.clear();
+    alert("Session expired.");
+    window.location.href = "login.html";
+  }, MAX_SESSION);
+
+  // STEP 4: Role-based UI
+  document.getElementById("userRole").innerText = role.toUpperCase();
+
+  const weekly = document.querySelector(".weekly-card");
+  const monthly = document.querySelector(".monthly-card");
+  const admin = document.querySelector(".admin-card");
+
+  weekly.style.display = "none";
+  monthly.style.display = "none";
+  admin.style.display = "none";
 
   if (role === "premium") {
-    document.querySelector(".weekly-card").style.display = "block";
-    document.querySelector(".monthly-card").style.display = "block";
+    weekly.style.display = "block";
+    monthly.style.display = "block";
   }
 
   if (role === "admin") {
-    document.querySelector(".weekly-card").style.display = "block";
-    document.querySelector(".monthly-card").style.display = "block";
-    document.querySelector(".admin-card").style.display = "block";
+    weekly.style.display = "block";
+    monthly.style.display = "block";
+    admin.style.display = "block";
   }
 
-  // ---------- LOGOUT ----------
-  document.getElementById("logoutBtn").onclick = function () {
-    localStorage.clear();
-    location.href = "login.html";
-  };
+})();
+</script>
+
+<!-- ================= LOGOUT ================= -->
+<script>
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
 </script>
 
 </body>
